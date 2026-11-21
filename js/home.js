@@ -1,8 +1,10 @@
-/* O’ZONE ARENA · home page · zones orbit · mobile deck · family story · closing orbit · spine
-   scroll is read with requestAnimationFrame only · the page is never hijacked */
+/* O’ZONE ARENA · home page · zones orbit · phone halo dial · family story · closing orbit · spine
+   every scroll linked moment runs inside the one frame loop in core.js · the page is never hijacked
+   round 5 · each moment has a phone version of the same idea · geometry is cached and only re-read on resize */
 (() => {
   'use strict';
-  const { ZONES, $, $$, motion, clamp, lerp, easeOut, smooth, pad, vh, icon } = window.OZ;
+  const OZ = window.OZ;
+  const { ZONES, $, $$, motion, clamp, lerp, easeOut, smooth, pad, icon, mq, onFrame, onMeasure, keepAlive, kick, docTop, set } = OZ;
 
   // optional muted loops · cropped to the same 3:4 frame as the stills · the still is the poster
   // delete a line here (or the file) and that zone simply shows its still
@@ -17,8 +19,10 @@
   const list = $('.orbit__list');
   const layers = $('.orbit__layers');
   const panel = $('.orbit__panel');
+  const deck = $('.deck');
   const track = $('.deck__track');
   const N = ZONES.length;
+  const STEP = 360 / N;
   // M1 · posters and video sources wait in data attributes until the orbit or deck comes near
   const media = (z, eager) => {
     const v = VIDEOS[z.id];
@@ -32,7 +36,7 @@
   panel.tabIndex = 0;
   ZONES.forEach((z, i) => {
     list.insertAdjacentHTML('beforeend',
-      `<li role="presentation" style="--a0:${(360 / N) * i}deg;--d:${300 + i * 90}ms">` +
+      `<li role="presentation" style="--a0:${STEP * i}deg;--d:${300 + i * 90}ms">` +
       `<button class="zb" type="button" role="tab" id="zt-${z.id}" aria-controls="zpanel" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">` +
       `<span class="zb__c">${icon(z.id)}</span><span class="zb__l">${z.name}</span></button></li>`);
     layers.insertAdjacentHTML('beforeend', `<div class="zl${i === 0 ? ' on' : ''}">${media(z, true)}</div>`);
@@ -81,13 +85,30 @@
     });
   });
 
-  // deck · prev next and the visible counter
+  // deck · prev next and the visible counter · the swipe position is read once per frame
   const cards = $$('.card', track);
-  const cardStep = () => cards.length > 1 ? cards[1].offsetLeft - cards[0].offsetLeft : track.clientWidth;
-  const deckIndex = () => Math.round(track.scrollLeft / cardStep());
-  $('.js-prev').addEventListener('click', () => track.scrollBy({ left: -cardStep(), behavior: motion ? 'smooth' : 'auto' }));
-  $('.js-next').addEventListener('click', () => track.scrollBy({ left: cardStep(), behavior: motion ? 'smooth' : 'auto' }));
-  track.addEventListener('scroll', () => { $('.js-di').textContent = pad(clamp(deckIndex(), 0, N - 1) + 1); syncVideos(); }, { passive: true });
+  let cardStep = 1;
+  let deckK = 0; let deckI = 0;
+  const di = $('.js-di');
+  const goCard = (i) => track.scrollTo({ left: clamp(i, 0, N - 1) * cardStep, behavior: motion ? 'smooth' : 'auto' });
+  $('.js-prev').addEventListener('click', () => goCard(deckI - 1));
+  $('.js-next').addEventListener('click', () => goCard(deckI + 1));
+  track.addEventListener('scroll', kick, { passive: true });
+
+  /* ---------- phones · the orbit becomes a halo dial around the swipe deck ----------
+     the eight zone circles ride a gold halo that hugs the arch of the card in front · swiping turns the halo
+     so the next circle rises to the top · the gold arc grows with every zone met and closes on the last one */
+  const dial = document.createElement('div');
+  dial.className = 'dial';
+  dial.setAttribute('aria-hidden', 'true');
+  dial.innerHTML = `<div class="dial__spin"><svg class="dial__ring" viewBox="0 0 100 100" focusable="false"><circle class="dial__track" cx="50" cy="50" r="49.4" pathLength="1" transform="rotate(-90 50 50)"/><circle class="dial__arc" cx="50" cy="50" r="49.4" pathLength="1" transform="rotate(${-90 - STEP / 2} 50 50)"/></svg></div>` +
+    `<ul class="dial__list">${ZONES.map((z, i) => `<li class="dial__z" data-i="${i}"><span class="dial__c">${icon(z.id)}</span></li>`).join('')}</ul>`;
+  deck.prepend(dial);
+  const dialSpin = $('.dial__spin', dial);
+  const dialTrack = $('.dial__track', dial);
+  const dialArc = $('.dial__arc', dial);
+  const dialZ = $$('.dial__z', dial);
+  dial.addEventListener('click', e => { const z = e.target.closest('.dial__z'); if (z) goCard(+z.dataset.i); });
 
   // optional zone videos · play only when visible
   let orbitVisible = false;
@@ -95,8 +116,7 @@
   function syncVideos() {
     if (!motion) return;
     zls.forEach((l, i) => { const v = $('video', l); if (!v || !v.dataset.ready) return; (orbitVisible && i === cur) ? v.play().catch(() => {}) : v.pause(); });
-    const di = deckIndex();
-    cards.forEach((c, i) => { const v = $('video', c); if (!v || !v.dataset.ready) return; (deckVisible && i === di) ? v.play().catch(() => {}) : v.pause(); });
+    cards.forEach((c, i) => { const v = $('video', c); if (!v || !v.dataset.ready) return; (deckVisible && i === deckI) ? v.play().catch(() => {}) : v.pause(); });
   }
   // M1 + M2 · when the orbit or deck is about 600 px away · posters and sources attach and every zone still is fetched once
   const arm = (scope) => {
@@ -123,15 +143,17 @@
   const steps = $$('.steps button', story);
   const storyArc = $('.story__arc', story);
   const CH = chs.length;
-  const storyTotal = () => story.offsetHeight - vh();
+  const G = {};   // cached geometry · document coordinates
   steps.forEach((b, i) => b.addEventListener('click', () => {
-    window.scrollTo({ top: story.offsetTop + storyTotal() * ((i + .5) / CH), behavior: 'smooth' });
+    window.scrollTo({ top: G.storyTop + (G.storyH - window.innerHeight) * ((i + .5) / CH), behavior: motion ? 'smooth' : 'auto' });
   }));
 
   /* ================= closing orbit dots ================= */
   const closeEl = $('.close');
+  const closeRun = $('.close-run');
+  const closeArc = $('.close__arc');
   const dotList = $('.close__dots');
-  ZONES.forEach((z, i) => dotList.insertAdjacentHTML('beforeend', `<li style="--a0:${(360 / N) * i}deg"></li>`));
+  ZONES.forEach((z, i) => dotList.insertAdjacentHTML('beforeend', `<li style="--a0:${STEP * i}deg"></li>`));
   const dots = $$('li', dotList);
 
   /* ================= drawn rings ================= */
@@ -140,36 +162,89 @@
   const ringsG = $('.ripple__rings', ripple);
   for (let r = 34; r <= 280; r += 24) ringsG.insertAdjacentHTML('beforeend', `<circle cx="280" cy="280" r="${r}"></circle>`);
 
-  /* ================= spine · page progress and chapter name ================= */
+  /* ================= spine · page progress and chapter name (desktop) ================= */
   const spine = $('.spine');
   const spineArc = $('.spine__arc');
   const spineLabel = $('.spine__label');
   const tracked = $$('[data-spine]');
   const LIGHT = new Set(['circles', 'family', 'celebrate', 'visit']);
-  function ui(y, H, docH) {
-    spineArc.style.strokeDashoffset = String(1 - clamp(y / Math.max(docH - H, 1)));
-    let active = tracked[0];
-    for (const s of tracked) { if (s.getBoundingClientRect().top <= H * .5) active = s; }
-    spineLabel.textContent = active.dataset.spine;
-    spine.classList.toggle('is-ink', LIGHT.has(active.id));
-    spine.classList.toggle('is-off', active === tracked[0] || active.id === 'join' || active.tagName === 'FOOTER');
-  }
+  let spineKey = '';
+
+  const hero = $('.hero');
+  const pimgs = $$('.pillar .arch img');
+  onMeasure(() => {
+    G.phone = mq.phone.matches; G.stack = mq.stack.matches; G.desk = !mq.tab.matches;
+    G.heroH = hero.offsetHeight;
+    // phones · the render is only the top 56 percent of the hero so the gold segment makes its lap while the render is still on screen
+    G.heroRun = G.phone ? Math.max($('.hero__media').offsetHeight, 1) : G.heroH;
+    G.rippleTop = docTop(ripple);
+    G.storyTop = docTop(story); G.storyH = story.offsetHeight;
+    G.deckTop = docTop(deck); G.deckH = deck.offsetHeight;
+    cardStep = cards.length > 1 ? (cards[1].offsetLeft - cards[0].offsetLeft) || 1 : track.clientWidth || 1;
+    G.tracked = tracked.map(s => docTop(s));
+    G.pillars = pimgs.map(im => { const a = im.parentNode; return { top: docTop(a), h: a.offsetHeight }; });
+    G.joinGridTop = docTop($('.join__grid'));
+    G.runTop = closeRun ? docTop(closeRun) : 0; G.runH = closeRun ? closeRun.offsetHeight : 0;
+    G.closeS = closeEl.offsetHeight;
+  });
+
+  // shared reads · the deck position is the only live read (its own horizontal scroll)
+  onFrame({ read: () => { if (G.phone) deckK = track.scrollLeft / cardStep; } });
+
+  // spine and deck counter run in every mode
+  onFrame({
+    write: ({ y, H, docH }) => {
+      if (G.desk) {
+        set(spineArc, 'strokeDashoffset', (1 - clamp(y / Math.max(docH - H, 1))).toFixed(4));
+        let a = 0;
+        G.tracked.forEach((t, i) => { if (t - y <= H * .5) a = i; });
+        const s = tracked[a];
+        const key = s.dataset.spine + (LIGHT.has(s.id) ? 1 : 0) + (a === 0 || s.id === 'join' || s.tagName === 'FOOTER' ? 1 : 0);
+        if (key !== spineKey) {
+          spineKey = key;
+          spineLabel.textContent = s.dataset.spine;
+          spine.classList.toggle('is-ink', LIGHT.has(s.id));
+          spine.classList.toggle('is-off', a === 0 || s.id === 'join' || s.tagName === 'FOOTER');
+        }
+      }
+      if (G.phone) {
+        const i = clamp(Math.round(deckK), 0, N - 1);
+        if (i !== deckI) { deckI = i; di.textContent = pad(i + 1); syncVideos(); }
+        // the halo dial · reduced motion turns it in whole steps without gliding
+        const k = motion ? deckK : deckI;
+        const near = G.deckTop - y < H * 1.4 && G.deckTop + G.deckH - y > -H * .4;
+        if (!near) return;
+        const e = motion ? clamp((y + H * .94 - G.deckTop) / (H * .52)) : 1;
+        set(dialSpin, 'transform', `rotate(${(-k * STEP).toFixed(2)}deg)`);
+        set(dialTrack, 'strokeDashoffset', (1 - easeOut(e)).toFixed(4));
+        set(dialArc, 'strokeDashoffset', (1 - ((k + 1) / N) * smooth(.55, 1, e)).toFixed(4));
+        dialZ.forEach((z, i) => {
+          const ei = motion ? smooth(i * .045, i * .045 + .55, e) : 1;
+          const th = (i - k) * STEP - (1 - ei) * 75;
+          const ab = Math.abs(th);
+          const s = .84 + .38 * Math.max(0, 1 - ab / STEP);
+          const o = (1 - smooth(STEP * 1.05, STEP * 1.55, ab)) * ei;
+          set(z, 'transform', `rotate(${th.toFixed(2)}deg) translateY(calc(var(--R) * -1)) rotate(${(-th).toFixed(2)}deg) scale(${s.toFixed(3)})`);
+          set(z, 'opacity', o.toFixed(3));
+          const on = ab < STEP / 2; const off = o < .2;
+          if (z._on !== on) { z._on = on; z.classList.toggle('on', on); }
+          if (z._off !== off) { z._off = off; z.classList.toggle('off', off); }
+        });
+      }
+    }
+  });
 
   /* ---------- static mode stops here · everything is already visible ---------- */
   if (!motion) {
     dots.forEach(d => d.classList.add('lit'));
     story.classList.add('is-end');
-    let pending = false;
-    const tick = () => { pending = false; ui(window.scrollY, vh(), document.documentElement.scrollHeight); };
-    const req = () => { if (!pending) { pending = true; requestAnimationFrame(tick); } };
-    window.addEventListener('scroll', req, { passive: true });
-    window.addEventListener('resize', req);
-    req();
     return;
   }
 
   $$('.pillar').forEach((p, i) => { const d = `${i * .16}s`; p.style.setProperty('--d', d); $('.arch--rise', p).style.setProperty('--d', d); });
   $$('.card').forEach(c => $('.arch--rise', c).style.setProperty('--d', '0s'));
+  // round 5 fix · the deck cards are built here after core.js started its reveal observer · without this their arches never rose on phones
+  if (OZ.io) cards.forEach(c => OZ.io.observe(c)); else cards.forEach(c => c.classList.add('is-in'));
 
   const vio = new IntersectionObserver(entries => {
     entries.forEach(en => {
@@ -181,20 +256,19 @@
   vio.observe(orbit); vio.observe(track);
 
   /* ================= hero intro ================= */
-  const hero = $('.hero');
   const heroBox = $('.hero__box');
   const arcs = $$('.orbit-arc');
   let introT0 = 0;
-  const startHero = () => { requestAnimationFrame(() => { hero.classList.add('is-in'); introT0 = performance.now(); loop(); }); };
+  const startHero = () => { requestAnimationFrame(() => { hero.classList.add('is-in'); introT0 = performance.now(); keepAlive(3100); }); };
   const heroImg = $('.hero__img');
   if (heroImg.complete) startHero(); else { heroImg.addEventListener('load', startHero, { once: true }); setTimeout(() => { if (!hero.classList.contains('is-in')) startHero(); }, 1400); }
 
   /* ================= scroll driven frame ================= */
   const rCore = $('.ripple__core', ripple);
-  const pimgs = $$('.pillar .arch img');
   const ANG = [-45, 45, 135, -135];
   let chapter = -1;
   let closed = false;
+  let litN = -1;
 
   function layoutStory(c) {
     pcs.forEach((el, i) => {
@@ -210,61 +284,62 @@
     story.classList.toggle('is-end', c === CH - 1);
   }
 
-  let ticking = false;
-  function loop() { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }
-  function frame(now) {
-    ticking = false;
-    const H = vh();
-    const y = window.scrollY;
-    const docH = document.documentElement.scrollHeight;
+  onFrame({
+    write: ({ y, H, docH, now }) => {
+      // hero · the bright arc orbits the building as you scroll · slow depth on the render
+      if (y < G.heroH * 1.2) {
+        const hp = clamp(y / Math.max(G.heroH, 1));
+        const intro = introT0 ? easeOut(clamp((now - introT0) / 3000)) : 0;
+        const off = (-(150 + intro * 260 + clamp(y / G.heroRun) * 620)).toFixed(1);
+        arcs.forEach(a => set(a, 'strokeDashoffset', off));
+        set(heroBox, 'transform', `translate3d(0, ${(hp * 9).toFixed(2)}%, 0)`);
+      }
 
-    // hero · the bright arc orbits the building as you scroll · slow depth on the render
-    const hp = clamp(y / Math.max(hero.offsetHeight, 1));
-    const intro = introT0 ? easeOut(clamp((now - introT0) / 3000)) : 0;
-    const off = String(-(150 + intro * 260 + hp * 620));
-    arcs.forEach(a => { a.style.strokeDashoffset = off; });
-    heroBox.style.transform = `translate3d(0, ${(hp * 9).toFixed(2)}%, 0)`;
-    if (introT0 && now - introT0 < 3100) loop();
+      // many circles · four circles drift in from across the city and meet at one core
+      const mTop = G.rippleTop - y;
+      if (mTop < H * 1.1 && mTop > -H) {
+        const mp = clamp((H * .95 - mTop) / (H * .55));
+        const me = easeOut(mp);
+        const spread = lerp(188, 66, me);
+        rcs.forEach(g => {
+          // a css transform on the svg group · no svg relayout per frame
+          set(g, 'transform', `translate(${(280 + +g.dataset.x * spread).toFixed(1)}px, ${(280 + +g.dataset.y * spread).toFixed(1)}px)`);
+          set(g, 'opacity', (.35 + .65 * me).toFixed(3));
+        });
+        set(rCore, 'transform', `scale(${smooth(.72, 1, mp).toFixed(3)})`);
+      }
 
-    // many circles · four circles drift in from across the city and meet at one core
-    const mr = ripple.getBoundingClientRect();
-    const mp = clamp((H * .95 - mr.top) / (H * .55));
-    const me = easeOut(mp);
-    const spread = lerp(188, 66, me);
-    rcs.forEach(g => {
-      const dx = +g.dataset.x; const dy = +g.dataset.y;
-      g.setAttribute('transform', `translate(${(280 + dx * spread).toFixed(1)} ${(280 + dy * spread).toFixed(1)})`);
-      g.style.opacity = (.35 + .65 * me).toFixed(3);
-    });
-    rCore.style.transform = `scale(${smooth(.72, 1, mp).toFixed(3)})`;
+      // family story · chapter from pinned progress · the orbit arc fills as the family gathers
+      const sp = clamp((y - G.storyTop) / Math.max(G.storyH - H, 1));
+      set(storyArc, 'strokeDashoffset', (1 - sp).toFixed(4));
+      const c = Math.min(CH - 1, Math.floor(sp * CH));
+      if (c !== chapter) { chapter = c; layoutStory(c); }
 
-    // family story · chapter from pinned progress · the orbit arc fills as the family gathers
-    const sr = story.getBoundingClientRect();
-    const sp = clamp(-sr.top / Math.max(story.offsetHeight - H, 1));
-    storyArc.style.strokeDashoffset = String(1 - sp);
-    const c = Math.min(CH - 1, Math.floor(sp * CH));
-    if (c !== chapter) { chapter = c; layoutStory(c); }
+      // building · the render drifts slowly inside each arch
+      pimgs.forEach((im, i) => {
+        const g = G.pillars[i]; const top = g.top - y;
+        if (top + g.h < 0 || top > H) return;
+        set(im, 'translate', `0 ${((.5 - (top + g.h / 2) / H) * 6).toFixed(2)}%`);
+      });
 
-    // building · the render drifts slowly inside each arch
-    pimgs.forEach(im => {
-      const r = im.parentNode.getBoundingClientRect();
-      if (r.bottom < 0 || r.top > H) return;
-      im.style.translate = `0 ${((.5 - (r.top + r.height / 2) / H) * 6).toFixed(2)}%`;
-    });
-
-    // closing orbit · draws with scroll and closes into the core
-    if (!closed) {
-      const cr = closeEl.getBoundingClientRect();
-      let cp = clamp((H * .95 - cr.top) / (H * .45));
-      if (y + H >= docH - 4) cp = 1;
-      $('.close__arc').style.strokeDashoffset = String(1 - cp);
-      dots.forEach((d, i) => d.classList.toggle('lit', cp >= i / N + .015));
-      if (cp >= .999) { closed = true; closeEl.classList.add('is-closed'); }
+      // closing orbit · draws with scroll and closes into the core
+      // desktop · the ring sticks beside the form · phones and tablets · the ring pins for a short run of its own then lets go
+      if (!closed) {
+        let cp;
+        if (G.stack && G.runH > G.closeS) {
+          const T = (H - G.closeS) / 2 + (G.phone ? 64 : 76) / 2;   // the sticky top in css · header plus centred ring
+          const start = G.runTop - T - H * .4;
+          const end = G.runTop - T + (G.runH - G.closeS) * .62;
+          cp = clamp((y - start) / Math.max(end - start, 1));
+        } else {
+          cp = clamp((H * .95 - (G.joinGridTop - y)) / (H * .45));
+        }
+        if (y + H >= docH - 4) cp = 1;
+        set(closeArc, 'strokeDashoffset', (1 - cp).toFixed(4));
+        const n = dots.filter((d, i) => cp >= i / N + .015).length;
+        if (n !== litN) { litN = n; dots.forEach((d, i) => d.classList.toggle('lit', i < n)); }
+        if (cp >= .999) { closed = true; closeEl.classList.add('is-closed'); }
+      }
     }
-
-    ui(y, H, docH);
-  }
-  window.addEventListener('scroll', loop, { passive: true });
-  window.addEventListener('resize', loop);
-  loop();
+  });
 })();

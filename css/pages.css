@@ -339,3 +339,68 @@
 }
 @supports not (width: 1cqw) { .zx__list li { transform: rotate(var(--a0)) translateY(-120px) rotate(calc(-1 * var(--a0))); } }
 @media (max-width: 1099px) { @supports not (width: 1cqw) { .zx__list li { transform: none; } } }
+
+/* =====================================================================
+   ROUND 5 · inner pages · a phone version of each signature moment
+   per frame writes are transform · opacity or a small svg stroke · reduced motion keeps the calm complete page
+   ===================================================================== */
+
+/* zones · the index bar holds all eight circles · a gold line fills along it as you read · the orbit arc of desktop */
+.zx__prog { display: none; }
+@media (max-width: 1099px) {
+  .zx__prog { display: block; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--gold); transform-origin: 0 50%; transform: scaleX(0); pointer-events: none; }
+}
+@media (max-width: 759px) {
+  .zx__list { gap: 6px; justify-content: space-between; }
+  .zx__list li { width: calc((100vw - 2 * var(--pad) - 42px) / 8); }
+}
+
+/* zones · on phones and tablets the circle opens into the arch through an iris that only scales · the photo counter scales so it never shrinks */
+.zs__iris { position: absolute; inset: 0; display: block; }
+@media (max-width: 1099px) {
+  .motion .zs__arch { clip-path: none; background: none; }
+  .motion .zs__iris { inset: auto; left: 50%; top: 42%; width: var(--D); height: var(--D); margin: calc(var(--D) / -2) 0 0 calc(var(--D) / -2); border-radius: 50%; overflow: hidden; transform: scale(var(--s0, 0)); }
+  .motion .zs__iris img { position: absolute; left: calc(var(--D) / 2 - var(--w) / 2); top: calc(var(--D) / 2 - var(--h) * .42); width: var(--w); height: var(--h); max-width: none; transform-origin: 50% 42%; }
+  .motion .zs.is-live .zs__iris, .motion .zs.is-live .zs__iris img { will-change: transform; }
+  .motion .zs__arch .vis-tag { opacity: 0; }
+}
+
+/* celebrations · on phones the garland snakes through both rows and each arch lights as the line reaches it */
+@media (max-width: 899px) {
+  .motion .garland.is-snake .oc__arch img { opacity: .3; transform: scale(1.08); transition: opacity 1s var(--ease), transform 1.4s var(--ease); }
+  .motion .garland.is-snake .oc.lit .oc__arch img { opacity: 1; transform: none; }
+}
+
+/* story · W5 fix · the pinned journey fits every viewport */
+.motion .jr.is-pinned .jr__stop { flex-basis: min(360px, 72vw, calc((100svh - 520px) * .75)); }
+/* story on phones · a pinned journey sized for 360 × 640 · the arch in front stands tall and the next ones wait */
+@media (max-width: 759px) {
+  .motion .jr.is-pinned .jr__pin { padding: calc(var(--hdr) + 8px) 0 12px; }
+  .motion .jr.is-pinned .jr__head { gap: 6px 16px; margin-bottom: 14px; }
+  .motion .jr.is-pinned .jr__head .eyebrow { flex: 1 1 auto; }
+  .motion .jr.is-pinned .jr__hint { order: 1; }
+  .motion .jr.is-pinned .jr__head .h2 { order: 2; flex-basis: 100%; font-size: 28px; }
+  .motion .jr.is-pinned .jr__track { gap: 16px; }
+  .motion .jr.is-pinned .jr__stop { flex-basis: min(72vw, calc((100svh - 340px) * .75)); }
+  .motion .jr.is-pinned .jr__arch { transform-origin: 50% 100%; will-change: transform, opacity; }
+  .motion .jr.is-pinned .jr__arch img { transform: scale(1.18); }
+  .motion .jr.is-pinned .jr__n { margin-top: 10px; }
+  .motion .jr.is-pinned .jr__t { font-size: 20px; line-height: 1.25; margin-top: 2px; }
+  .motion .jr.is-pinned .jr__d { font-size: 14px; line-height: 1.45; margin-top: 2px; }
+  .motion .jr.is-pinned .jr__line { margin-top: 14px; }
+  .motion .jr.is-pinned .jr__note { margin-top: 10px; font-size: 12.5px; }
+}
+
+/* first circle on phones · a live mini card rises while you pick · tap it to see the full card */
+.cardpeek { display: none; }
+@media (max-width: 899px) {
+  .cardpeek { display: block; position: fixed; z-index: 45; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); width: 84px; padding: 0; border: 0; border-radius: 8px; background: var(--navy); color: var(--linen); box-shadow: 0 0 0 1.5px var(--gold), 0 12px 32px rgba(3, 23, 73, .5); opacity: 0; visibility: hidden; transform: translateY(18px) scale(.92); transition: opacity .5s var(--ease), transform .6s var(--ease), visibility 0s .6s; }
+  .cardpeek.on { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  .cardpeek__c { display: block; width: 100%; height: auto; aspect-ratio: 1080 / 1350; border-radius: 8px 8px 0 0; }
+  .cardpeek__k { display: block; padding: 5px 0 6px; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; text-align: center; }
+}
+
+/* 404 · the arc turns on its own composited layer · the dots and the ghost core stay still above it */
+.nf__orbit { position: relative; }
+.nf__still { position: relative; }
+.nf__spin { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; }

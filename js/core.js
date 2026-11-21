@@ -66,6 +66,37 @@
   // the address people should share · the live page when served · otherwise the canonical root
   const pageUrl = () => /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : ($('link[rel="canonical"]') || {}).href || SITE_URL;
 
+  /* ================= one frame loop for the whole page · round 5 =================
+     every scroll linked moment on every page registers here · one passive scroll listener · one requestAnimationFrame
+     measure(s) · geometry is read only on load · resize · font load and body size changes · never per frame
+     read(s) then write(s) · all reads of a frame happen before any write · writes are transform · opacity or a small svg stroke */
+  const mq = { phone: matchMedia('(max-width: 759px)'), stack: matchMedia('(max-width: 899px)'), tab: matchMedia('(max-width: 1099px)') };
+  const tasks = []; const measures = [];
+  const S = { y: 0, H: 0, W: 0, docH: 0, now: 0 };
+  let queued = false; let dirty = true; let alive = 0;
+  const frame = (now) => {
+    queued = false;
+    S.now = now; S.H = window.innerHeight; S.W = window.innerWidth;
+    if (dirty) { dirty = false; S.docH = root.scrollHeight; measures.forEach(f => f(S)); S.docH = root.scrollHeight; }
+    S.y = window.scrollY;
+    for (const t of tasks) if (t.read) t.read(S);
+    for (const t of tasks) if (t.write) t.write(S);
+    if (now < alive) kick();
+  };
+  const kick = () => { if (!queued) { queued = true; requestAnimationFrame(frame); } };
+  const remeasure = () => { dirty = true; kick(); };
+  const onFrame = (t) => { tasks.push(typeof t === 'function' ? { write: t } : t); kick(); };
+  const onMeasure = (f) => { measures.push(f); remeasure(); };
+  const keepAlive = (ms) => { alive = Math.max(alive, performance.now() + ms); kick(); };
+  const docTop = el => el.getBoundingClientRect().top + window.scrollY;
+  window.addEventListener('scroll', kick, { passive: true });
+  window.addEventListener('resize', remeasure, { passive: true });
+  window.addEventListener('load', remeasure);
+  if (document.fonts) document.fonts.ready.then(remeasure);
+  if ('ResizeObserver' in window) new ResizeObserver(remeasure).observe(document.body);
+  // a style write only when the value changed · keeps the frame free of needless style work
+  const set = (el, prop, v) => { if (el['_' + prop] !== v) { el['_' + prop] = v; el.style[prop] = v; } };
+
   /* ---------- data driven content ---------- */
   // a zone removed from ZONES disappears from every page
   $$('[data-zone-item]').forEach(el => { if (!zoneById(el.dataset.zoneItem)) el.remove(); });
@@ -89,7 +120,7 @@
   const hdr = $('#hdr');
   const menuBtn = $('.menu-btn');
   const mnav = $('#mnav');
-  const setSolid = () => hdr.classList.toggle('is-solid', menuBtn.getAttribute('aria-expanded') === 'true' || window.scrollY > 24);
+  const setSolid = () => { solid = null; kick(); };
   const setMenu = (open) => {
     menuBtn.setAttribute('aria-expanded', String(open));
     $('.menu-btn__t', menuBtn).textContent = open ? 'Close' : 'Menu';
@@ -113,22 +144,25 @@
   mnav.addEventListener('keydown', trap);
   menuBtn.addEventListener('keydown', e => { if (menuBtn.getAttribute('aria-expanded') === 'true') trap(e); });
 
-  /* ================= mobile dock · after the first screen · hidden near a form ================= */
+  /* ================= mobile dock · after the first screen · hidden near a form and while a scene is pinned ================= */
   const dock = $('.dock');
-  const stops = $$('[data-dock-stop]');
-  let pend = false;
-  const onScroll = () => {
-    pend = false;
-    setSolid();
-    if (!dock) return;
-    const H = vh();
-    const near = stops.some(s => { const r = s.getBoundingClientRect(); return r.top < H * .92 && r.bottom > 0; });
-    dock.classList.toggle('on', window.scrollY > H * .6 && !near);
-  };
-  const req = () => { if (!pend) { pend = true; requestAnimationFrame(onScroll); } };
-  window.addEventListener('scroll', req, { passive: true });
-  window.addEventListener('resize', req);
-  req();
+  const stops = $$('[data-dock-stop]').map(el => ({ el, pin: false }));
+  $$('[data-dock-pin]').forEach(el => stops.push({ el, pin: true }));
+  // the orbit spine on phones and tablets · page progress drawn around the menu ring
+  const prog = $('.menu-btn__prog circle');
+  let solid = null; let docked = null;
+  onMeasure(() => { stops.forEach(s => { s.top = docTop(s.el); s.h = s.el.offsetHeight; }); });
+  onFrame({
+    write: ({ y, H, docH }) => {
+      const sol = menuBtn.getAttribute('aria-expanded') === 'true' || y > 24;
+      if (sol !== solid) { solid = sol; hdr.classList.toggle('is-solid', sol); }
+      if (prog) set(prog, 'strokeDashoffset', (1 - clamp(y / Math.max(docH - H, 1))).toFixed(4));
+      if (!dock) return;
+      const near = stops.some(s => s.pin ? (s.top - y < H * .5 && s.top + s.h - y > H * .5) : (s.top - y < H * .92 && s.top + s.h - y > 0));
+      const on = y > H * .6 && !near;
+      if (on !== docked) { docked = on; dock.classList.toggle('on', on); }
+    }
+  });
 
   /* ================= send it to your family circle · needs no brand number ================= */
   const shareMsg = () => `${CONFIG.shareText} · ${pageUrl()}`;
@@ -242,5 +276,5 @@
     $$('.reveal, .pillar, .card, .orbit, [data-reveal]').forEach(el => io.observe(el));
   }
 
-  window.OZ = { SITE_URL, CONFIG, ZONES, FAMILY, OCCASIONS, ICONS, $, $$, motion, clamp, lerp, easeOut, smooth, pad, vh, esc, icon, zoneById, waDigits, waUrl, pageUrl, io };
+  window.OZ = { SITE_URL, CONFIG, ZONES, FAMILY, OCCASIONS, ICONS, $, $$, motion, clamp, lerp, easeOut, smooth, pad, vh, esc, icon, zoneById, waDigits, waUrl, pageUrl, io, mq, onFrame, onMeasure, keepAlive, kick, remeasure, docTop, set };
 })();

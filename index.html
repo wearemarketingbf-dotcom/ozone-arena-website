@@ -51,7 +51,7 @@
       </ul>
     </nav>
     <a class="btn btn--gold btn--sm hdr__cta" href="#join">Join the first circle</a>
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav"><span class="menu-btn__ring" aria-hidden="true"></span><span class="menu-btn__t">Menu</span></button>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav"><span class="menu-btn__ring" aria-hidden="true"><svg class="menu-btn__prog" viewBox="0 0 30 30" focusable="false"><circle cx="15" cy="15" r="14.25" pathLength="1"/></svg></span><span class="menu-btn__t">Menu</span></button>
   </div>
 </header>
 <div class="mnav" id="mnav" hidden>
@@ -80,7 +80,7 @@
 <section class="hero" id="top" aria-labelledby="hero-h" data-spine="01 · The circle is forming">
   <div class="hero__media">
     <div class="hero__box">
-      <img class="hero__img" src="assets/hero-1600.webp" srcset="assets/hero-1000.webp 1000w, assets/hero-1600.webp 1600w, assets/hero-1800.webp 1800w, assets/hero-2400.webp 2400w" sizes="(max-width: 1099px) and (orientation: portrait) 110svh, max(100vw, 178svh)" width="1600" height="901" alt="Night visualisation of the O’ZONE ARENA building · a round drum of warm wood slats glowing gold with the symbol on its face" fetchpriority="high" decoding="async">
+      <img class="hero__img" src="assets/hero-1600.webp" srcset="assets/hero-1000.webp 1000w, assets/hero-1600.webp 1600w, assets/hero-1800.webp 1800w, assets/hero-2400.webp 2400w" sizes="(max-width: 759px) 100vh, (max-width: 1099px) and (orientation: portrait) 110vh, max(100vw, 178vh)" width="1600" height="901" alt="Night visualisation of the O’ZONE ARENA building · a round drum of warm wood slats glowing gold with the symbol on its face" fetchpriority="high" decoding="async">
       <svg class="hero__orbit" viewBox="0 0 3198 1800" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <defs>
           <mask id="drumMask" maskUnits="userSpaceOnUse" x="0" y="0" width="3198" height="1800">
@@ -181,7 +181,7 @@
 </section>
 
 <!-- 4 · ONE FAMILY MANY CIRCLES · pinned story (static list without motion) -->
-<section class="story" id="family" aria-labelledby="story-h" data-spine="04 · One family many circles">
+<section class="story" id="family" aria-labelledby="story-h" data-spine="04 · One family many circles" data-dock-pin>
   <div class="story__pin">
     <div class="wrap story__grid">
       <div class="story__stage">
@@ -284,7 +284,7 @@
 <!-- 7 · JOIN THE FIRST CIRCLE · the orbit closes into the core -->
 <section class="join" id="join" aria-labelledby="join-h" data-spine="08 · Join the first circle" data-dock-stop>
   <div class="wrap join__grid">
-    <div class="close" aria-hidden="true">
+    <div class="close-run"><div class="close" aria-hidden="true">
       <svg class="close__svg" viewBox="0 0 520 520" focusable="false">
         <circle class="close__track" cx="260" cy="260" r="214"/>
         <circle class="close__ripple" cx="260" cy="196" r="40"/>
@@ -293,7 +293,7 @@
       </svg>
       <ul class="close__dots"></ul>
       <p class="close__tag">all your circles<br><span>one zone</span></p>
-    </div>
+    </div></div>
     <div class="join__form">
       <p class="eyebrow">Join the first circle</p>
       <h2 id="join-h" class="h2"><span class="ln"><span>Be there when</span></span><span class="ln ln--gold"><span>the circle closes</span></span></h2>

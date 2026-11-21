@@ -52,7 +52,7 @@
       </ul>
     </nav>
     <a class="btn btn--gold btn--sm hdr__cta" href="first-circle.html">Join the first circle</a>
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav"><span class="menu-btn__ring" aria-hidden="true"></span><span class="menu-btn__t">Menu</span></button>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav"><span class="menu-btn__ring" aria-hidden="true"><svg class="menu-btn__prog" viewBox="0 0 30 30" focusable="false"><circle cx="15" cy="15" r="14.25" pathLength="1"/></svg></span><span class="menu-btn__t">Menu</span></button>
   </div>
 </header>
 <div class="mnav" id="mnav" hidden>
@@ -96,11 +96,12 @@
         </ul>
         <p class="zx__now" aria-hidden="true"><span class="zx__num js-zx-n">01</span><span class="zx__name js-zx-name">Lounge</span></p>
       </div>
+      <span class="zx__prog" aria-hidden="true"></span>
     </nav>
     <div class="zx__zones">
       <section class="zs " id="zone-lounge" data-zone-item="lounge" aria-labelledby="zs-lounge-h">
         <div class="zs__media">
-          <div class="zs__arch"><img src="assets/p/z-lounge.webp" width="860" height="1075" loading="eager" decoding="async" alt="A family reading and talking around a glowing round table in a warm lounge"><p class="vis-tag">Visualisation</p></div>
+          <div class="zs__arch"><span class="zs__iris"><img src="assets/p/z-lounge.webp" width="860" height="1075" loading="eager" decoding="async" alt="A family reading and talking around a glowing round table in a warm lounge"></span><p class="vis-tag">Visualisation</p></div>
           <figure class="zs__detail"><img src="assets/p/zd-lounge.webp" width="520" height="520" loading="lazy" decoding="async" alt="A girl with a tablet and a boy with a cup on cream sofas around a glowing table"><figcaption class="vis-cap">Visualisation</figcaption></figure>
         </div>
         <div class="zs__text">
@@ -112,7 +113,7 @@
             <div><dt>The feeling</dt><dd>Soft light · deep seats · time slowing down</dd></div>
             <div><dt>What you will find</dt><dd>Round tables for long talks · quiet corners to read · a calm spot between plans</dd></div>
           </dl>
-          <nav class="zs__nav" aria-label="More zones">
+          <nav class="zs__nav" aria-label="More zones · Lounge">
             <a class="zs__prev" href="#zone-studio" data-to="studio"><span class="zs__dir">Previous</span><span class="zs__to">Studio</span></a>
             <a class="zs__next" href="#zone-cafe" data-to="cafe"><span class="zs__dir">Next</span><span class="zs__to">Café</span></a>
           </nav>
@@ -120,7 +121,7 @@
       </section>
       <section class="zs zs--flip" id="zone-cafe" data-zone-item="cafe" aria-labelledby="zs-cafe-h">
         <div class="zs__media">
-          <div class="zs__arch"><img src="assets/p/z-cafe.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Friends laughing over coffee and pastries at a marble café table"><p class="vis-tag">Visualisation</p></div>
+          <div class="zs__arch"><span class="zs__iris"><img src="assets/p/z-cafe.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Friends laughing over coffee and pastries at a marble café table"></span><p class="vis-tag">Visualisation</p></div>
           <figure class="zs__detail"><img src="assets/p/zd-cafe.webp" width="520" height="520" loading="lazy" decoding="async" alt="Many hands sharing chai and sweets around one round table seen from above"><figcaption class="vis-cap">Visualisation</figcaption></figure>
         </div>
         <div class="zs__text">
@@ -132,7 +133,7 @@
             <div><dt>The feeling</dt><dd>Morning light and the sound of good conversation</dd></div>
             <div><dt>What you will find</dt><dd>A warm cup · a small bite · tables made for catching up</dd></div>
           </dl>
-          <nav class="zs__nav" aria-label="More zones">
+          <nav class="zs__nav" aria-label="More zones · Café">
             <a class="zs__prev" href="#zone-lounge" data-to="lounge"><span class="zs__dir">Previous</span><span class="zs__to">Lounge</span></a>
             <a class="zs__next" href="#zone-restaurant" data-to="restaurant"><span class="zs__dir">Next</span><span class="zs__to">Restaurant</span></a>
           </nav>
@@ -140,7 +141,7 @@
       </section>
       <section class="zs " id="zone-restaurant" data-zone-item="restaurant" aria-labelledby="zs-restaurant-h">
         <div class="zs__media">
-          <div class="zs__arch"><img src="assets/p/z-restaurant.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Three generations sharing a meal at one round restaurant table under a gold ring light"><p class="vis-tag">Visualisation</p></div>
+          <div class="zs__arch"><span class="zs__iris"><img src="assets/p/z-restaurant.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Three generations sharing a meal at one round restaurant table under a gold ring light"></span><p class="vis-tag">Visualisation</p></div>
           <figure class="zs__detail"><img src="assets/p/zd-restaurant.webp" width="520" height="520" loading="lazy" decoding="async" alt="A steaming karahi with naan and fresh salad"><figcaption class="vis-cap">Visualisation</figcaption></figure>
         </div>
         <div class="zs__text">
@@ -152,7 +153,7 @@
             <div><dt>The feeling</dt><dd>The whole table talking at once</dd></div>
             <div><dt>What you will find</dt><dd>Round tables for the whole family · food that brings everyone to the table</dd></div>
           </dl>
-          <nav class="zs__nav" aria-label="More zones">
+          <nav class="zs__nav" aria-label="More zones · Restaurant">
             <a class="zs__prev" href="#zone-cafe" data-to="cafe"><span class="zs__dir">Previous</span><span class="zs__to">Café</span></a>
             <a class="zs__next" href="#zone-gaming" data-to="gaming"><span class="zs__dir">Next</span><span class="zs__to">Gaming</span></a>
           </nav>
@@ -160,7 +161,7 @@
       </section>
       <section class="zs zs--flip" id="zone-gaming" data-zone-item="gaming" aria-labelledby="zs-gaming-h">
         <div class="zs__media">
-          <div class="zs__arch"><img src="assets/p/z-gaming.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Two friends high fiving between gaming screens"><p class="vis-tag">Visualisation</p></div>
+          <div class="zs__arch"><span class="zs__iris"><img src="assets/p/z-gaming.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Two friends high fiving between gaming screens"></span><p class="vis-tag">Visualisation</p></div>
           <figure class="zs__detail"><img src="assets/p/zd-gaming.webp" width="520" height="520" loading="lazy" decoding="async" alt="A crowd watching a match on a large screen under gold ring lights"><figcaption class="vis-cap">Visualisation</figcaption></figure>
         </div>
         <div class="zs__text">
@@ -172,7 +173,7 @@
             <div><dt>The feeling</dt><dd>Cheers · high fives · one more round</dd></div>
             <div><dt>What you will find</dt><dd>Screens to play side by side · space to watch and cheer</dd></div>
           </dl>
-          <nav class="zs__nav" aria-label="More zones">
+          <nav class="zs__nav" aria-label="More zones · Gaming">
             <a class="zs__prev" href="#zone-restaurant" data-to="restaurant"><span class="zs__dir">Previous</span><span class="zs__to">Restaurant</span></a>
             <a class="zs__next" href="#zone-kids" data-to="kids"><span class="zs__dir">Next</span><span class="zs__to">Kids</span></a>
           </nav>
@@ -180,7 +181,7 @@
       </section>
       <section class="zs " id="zone-kids" data-zone-item="kids" aria-labelledby="zs-kids-h">
         <div class="zs__media">
-          <div class="zs__arch"><img src="assets/p/z-kids.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Children climbing and laughing on soft cream play shapes"><p class="vis-tag">Visualisation</p></div>
+          <div class="zs__arch"><span class="zs__iris"><img src="assets/p/z-kids.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Children climbing and laughing on soft cream play shapes"></span><p class="vis-tag">Visualisation</p></div>
           <figure class="zs__detail"><img src="assets/p/zd-kids.webp" width="520" height="520" loading="lazy" decoding="async" alt="A grandmother drawing colourful circles with two children"><figcaption class="vis-cap">Visualisation</figcaption></figure>
         </div>
         <div class="zs__text">
@@ -192,7 +193,7 @@
             <div><dt>The feeling</dt><dd>Laughter that carries across the room</dd></div>
             <div><dt>What you will find</dt><dd>Soft shapes to climb · space to make things · corners where parents can sit close</dd></div>
           </dl>
-          <nav class="zs__nav" aria-label="More zones">
+          <nav class="zs__nav" aria-label="More zones · Kids">
             <a class="zs__prev" href="#zone-gaming" data-to="gaming"><span class="zs__dir">Previous</span><span class="zs__to">Gaming</span></a>
             <a class="zs__next" href="#zone-wellness" data-to="wellness"><span class="zs__dir">Next</span><span class="zs__to">Wellness</span></a>
           </nav>
@@ -200,7 +201,7 @@
       </section>
       <section class="zs zs--flip" id="zone-wellness" data-zone-item="wellness" aria-labelledby="zs-wellness-h">
         <div class="zs__media">
-          <div class="zs__arch"><img src="assets/p/z-wellness.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Two women sitting in calm meditation in a warm wood room"><p class="vis-tag">Visualisation</p></div>
+          <div class="zs__arch"><span class="zs__iris"><img src="assets/p/z-wellness.webp" width="860" height="1075" loading="lazy" decoding="async" alt="Two women sitting in calm meditation in a warm wood room"></span><p class="vis-tag">Visualisation</p></div>
           <figure class="zs__detail"><img src="assets/p/zd-wellness.webp" width="520" height="520" loading="lazy" decoding="async" alt="A woman resting in a white robe on a soft lounger"><figcaption class="vis-cap">Visualisation</figcaption></figure>
         </div>
         <div class="zs__text">
@@ -212,7 +213,7 @@
             <div><dt>The feeling</dt><dd>Warm wood · soft light · a slower pulse</dd></div>
             <div><dt>What you will find</dt><dd>Calm rooms to rest and reset away from the noise</dd></div>
           </dl>
-          <nav class="zs__nav" aria-label="More zones">
+          <nav class="zs__nav" aria-label="More zones · Wellness">
             <a class="zs__prev" href="#zone-kids" data-to="kids"><span class="zs__dir">Previous</span><span class="zs__to">Kids</span></a>
             <a class="zs__next" href="#zone-gym" data-to="gym"><span class="zs__dir">Next</span><span class="zs__to">Gym</span></a>
           </nav>
@@ -220,7 +221,7 @@
       </section>
       <section class="zs " id="zone-gym" data-zone-item="gym" aria-labelledby="zs-gym-h">
         <div class="zs__media">
-          <div class="zs__arch"><img src="assets/p/z-gym.webp" width="860" height="1075" loading="lazy" decoding="async" alt="People training on machines in a bright gym with a gold ring light"><p class="vis-tag">Visualisation</p></div>
+          <div class="zs__arch"><span class="zs__iris"><img src="assets/p/z-gym.webp" width="860" height="1075" loading="lazy" decoding="async" alt="People training on machines in a bright gym with a gold ring light"></span><p class="vis-tag">Visualisation</p></div>
           <figure class="zs__detail"><img src="assets/p/zd-gym.webp" width="520" height="520" loading="lazy" decoding="async" alt="A smiling father lifting a dumbbell"><figcaption class="vis-cap">Visualisation</figcaption></figure>
         </div>
         <div class="zs__text">
@@ -232,7 +233,7 @@
             <div><dt>The feeling</dt><dd>Focus with a friendly face nearby</dd></div>
             <div><dt>What you will find</dt><dd>Space to train · room to move · a reason to come back</dd></div>
           </dl>
-          <nav class="zs__nav" aria-label="More zones">
+          <nav class="zs__nav" aria-label="More zones · Gym">
             <a class="zs__prev" href="#zone-wellness" data-to="wellness"><span class="zs__dir">Previous</span><span class="zs__to">Wellness</span></a>
             <a class="zs__next" href="#zone-studio" data-to="studio"><span class="zs__dir">Next</span><span class="zs__to">Studio</span></a>
           </nav>
@@ -240,7 +241,7 @@
       </section>
       <section class="zs zs--flip" id="zone-studio" data-zone-item="studio" aria-labelledby="zs-studio-h">
         <div class="zs__media">
-          <div class="zs__arch"><img src="assets/p/z-studio.webp" width="860" height="1075" loading="lazy" decoding="async" alt="A calm studio with people stretching on mats under a ring light"><p class="vis-tag">Visualisation</p></div>
+          <div class="zs__arch"><span class="zs__iris"><img src="assets/p/z-studio.webp" width="860" height="1075" loading="lazy" decoding="async" alt="A calm studio with people stretching on mats under a ring light"></span><p class="vis-tag">Visualisation</p></div>
           <figure class="zs__detail"><img src="assets/p/zd-studio.webp" width="520" height="520" loading="lazy" decoding="async" alt="A class lying in a circle on the studio floor seen from above"><figcaption class="vis-cap">Visualisation</figcaption></figure>
         </div>
         <div class="zs__text">
@@ -252,7 +253,7 @@
             <div><dt>The feeling</dt><dd>One breath across the whole room</dd></div>
             <div><dt>What you will find</dt><dd>An open floor for classes and calm movement</dd></div>
           </dl>
-          <nav class="zs__nav" aria-label="More zones">
+          <nav class="zs__nav" aria-label="More zones · Studio">
             <a class="zs__prev" href="#zone-gym" data-to="gym"><span class="zs__dir">Previous</span><span class="zs__to">Gym</span></a>
             <a class="zs__next" href="#zone-lounge" data-to="lounge"><span class="zs__dir">Next</span><span class="zs__to">Lounge</span></a>
           </nav>

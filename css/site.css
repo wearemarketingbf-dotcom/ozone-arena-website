@@ -610,3 +610,55 @@ html:not(.js) .orbit, html:not(.js) .deck, html:not(.js) .zones__now, html:not(.
   .picker__z { transform: rotate(var(--a0)) translateY(calc(var(--R) * -.39)) rotate(calc(-1 * var(--a0))); }
   .close__dots li { transform: rotate(var(--a0)) translateY(calc(min(520px, 88vw) * -.4115)); }
 }
+
+/* =====================================================================
+   ROUND 5 · mobile motion parity · every moment has a phone version of the same idea
+   per frame writes are transform · opacity or a small svg stroke · reduced motion keeps the calm complete page
+   ===================================================================== */
+
+/* the orbit spine on phones and tablets · page progress drawn in gold around the menu ring */
+.menu-btn__prog { position: absolute; inset: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); transform: rotate(-90deg); overflow: visible; pointer-events: none; }
+.menu-btn__prog circle { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 1; stroke-linecap: round; transition: opacity .4s var(--ease); }
+.menu-btn[aria-expanded="true"] .menu-btn__prog circle { opacity: 0; }
+
+/* zones on phones · a halo dial around the swipe deck · the eight circles ride a gold orbit that hugs the front arch */
+.dial { display: none; }
+@media (max-width: 759px) {
+  .deck { position: relative; isolation: isolate; --cw: min(320px, .76 * (100vw - 2 * var(--pad))); --R: calc(var(--cw) / 2 + 30px); padding-top: 58px; }
+  .deck__track { position: relative; z-index: 1; padding-inline: calc((100% - var(--cw)) / 2); scroll-padding-inline: calc((100% - var(--cw)) / 2); }
+  .card { flex: 0 0 var(--cw); max-width: none; }
+  .dial { display: block; position: absolute; left: 50%; top: calc(58px + 8px + var(--cw) / 2); width: 0; height: 0; }
+  .dial__spin { position: absolute; z-index: 0; left: calc(var(--R) * -1); top: calc(var(--R) * -1); width: calc(var(--R) * 2); height: calc(var(--R) * 2); pointer-events: none; }
+  .dial__ring { width: 100%; height: 100%; overflow: visible; }
+  .dial__track { fill: none; stroke: var(--linen); stroke-opacity: .24; stroke-width: .34; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .dial__arc { fill: none; stroke: var(--gold); stroke-width: .66; stroke-dasharray: 1; stroke-dashoffset: 1; stroke-linecap: round; }
+  .dial__list { position: absolute; z-index: 2; left: 0; top: 0; }
+  .dial__z { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; cursor: pointer; transform: translateY(calc(var(--R) * -1)); }
+  .dial__z.off { pointer-events: none; }
+  .dial__c { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: var(--linen); color: var(--navy); transition: box-shadow .5s var(--ease); }
+  .dial__c svg { width: 64%; height: 64%; }
+  .dial__z.on .dial__c { box-shadow: 0 0 0 4px var(--navy), 0 0 0 5.5px var(--gold); }
+  .motion .dial__track { stroke-dashoffset: 1; }
+}
+
+/* family story on phones · the stage gives way on short screens so the chapter line and steps stay inside 360 × 640 */
+@media (max-width: 899px) {
+  .motion .story__stage { --S: min(84vw, 44svh, 100svh - 400px); }
+}
+@media (max-width: 899px) and (max-height: 700px) {
+  .motion .story__pin { padding-top: calc(var(--hdr) + 8px); }
+  .motion .story__grid { gap: 12px; }
+  .motion .story__text .h2 { font-size: 26px; margin-bottom: 8px; }
+  .motion .story__text .eyebrow { margin-bottom: 6px; }
+  .motion .ch__t { font-size: 19px; }
+  .motion .chapters { min-height: 78px; }
+}
+
+/* closing orbit on phones and tablets · the ring pins for a short run of its own · closes · then lets the form through */
+.close-run { display: contents; }
+@media (max-width: 899px) {
+  .motion .close-run { display: block; height: calc(min(420px, 88vw) + 62svh); }
+  .motion .close { position: sticky; top: calc(var(--hdr) / 2 + (100svh - min(420px, 88vw)) / 2); margin-inline: auto; }
+  /* a shorter join block · the family share already sits in the footer of every page */
+  [data-page="index"] #join .share--join { display: none; }
+}
