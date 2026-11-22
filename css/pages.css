@@ -390,6 +390,9 @@
   .motion .jr.is-pinned .jr__line { margin-top: 14px; }
   .motion .jr.is-pinned .jr__note { margin-top: 10px; font-size: 12.5px; }
 }
+@media (max-width: 759px) and (max-height: 700px) {
+  .motion .jr.is-pinned .jr__note { display: none; }
+}
 
 /* first circle on phones · a live mini card rises while you pick · tap it to see the full card */
 .cardpeek { display: none; }

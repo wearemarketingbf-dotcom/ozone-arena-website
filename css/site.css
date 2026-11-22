@@ -1,6 +1,12 @@
 /* O’ZONE ARENA · pre-opening site · the circle is forming
    brand colours only · Montserrat only · motion lives under html.motion so the static page is always complete */
 
+/* Montserrat is hosted with the site (SIL Open Font License · assets/fonts/OFL-LICENSE.txt) so headings never fall back when Google Fonts is blocked */
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 300; font-display: swap; src: url('../assets/fonts/montserrat-latin-300-normal.woff2') format('woff2'); }
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 400; font-display: swap; src: url('../assets/fonts/montserrat-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 500; font-display: swap; src: url('../assets/fonts/montserrat-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 600; font-display: swap; src: url('../assets/fonts/montserrat-latin-600-normal.woff2') format('woff2'); }
+
 @property --a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 
 :root {

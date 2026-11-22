@@ -216,12 +216,15 @@
           const top = G.top - y;
           if (top > H || top + G.h < 0) return;
           const p = clamp(-top / Math.max(G.h - H, 1));
-          const t = `translate3d(${(-p * over).toFixed(1)}px, 0, 0)`;
+          // phones · hold each stop for the first third of its runway so the caption and the counter stay together
+          let at = p * (S - 1);
+          if (G.phone && S > 1) { const i = Math.min(Math.floor(at), S - 2); at = i + smooth(.35, 1, at - i); }
+          const tp = G.phone && S > 1 ? at / (S - 1) : p;
+          const t = `translate3d(${(-tp * over).toFixed(1)}px, 0, 0)`;
           if (t !== tx) { tx = t; track.style.transform = t; }
           set(draw, 'strokeDashoffset', (1 - p).toFixed(4));
           if (!G.phone) { show(pad(Math.min(S, Math.floor(p * S * .999) + 1))); return; }
           // phones · the arch in front stands tall and lit · the others wait smaller and dim · each view drifts inside its arch
-          const at = p * (S - 1);
           show(pad(Math.round(at) + 1));
           archs.forEach((a, i) => {
             const e = 1 - clamp(Math.abs(i - at));
