@@ -6,7 +6,9 @@
 (() => {
   'use strict';
   const OZ = window.OZ;
-  const { $, $$, motion, clamp, lerp, easeOut, smooth, ZONES, pad, CONFIG, mq, onFrame, onMeasure, docTop, set } = OZ;
+  const { $, $$, motion, calm, clamp, lerp, easeOut, smooth, ZONES, pad, CONFIG, mq, onFrame, onMeasure, docTop, set } = OZ;
+  // calm motion · a photo may settle by 4 percent at most as its arch opens · motion lets it settle from 16 percent
+  const Z0 = calm ? 1.04 : 1.16;
   const page = document.body.dataset.page;
   // piecewise linear map · knots sorted by x
   const interp = (k, x) => {
@@ -43,7 +45,7 @@
       nowName.textContent = OZ.zoneById(idOf(secs[i])).name;
       if (bar.scrollWidth > bar.clientWidth + 2) {
         const li = items[i];
-        bar.scrollTo({ left: li.offsetLeft - bar.clientWidth / 2 + li.offsetWidth / 2, behavior: motion ? 'smooth' : 'auto' });
+        bar.scrollTo({ left: li.offsetLeft - bar.clientWidth / 2 + li.offsetWidth / 2, behavior: OZ.behavior() });
       }
     };
     const arches = secs.map(s => $('.zs__arch', s));
@@ -84,7 +86,7 @@
           if (G.iris) {
             const s = lerp(g.s0, 1, p);
             set(irises[i], 'transform', `scale(${s.toFixed(4)})`);
-            set(imgs[i], 'transform', `scale(${(lerp(1.16, 1, p) / s).toFixed(4)})`);
+            set(imgs[i], 'transform', `scale(${(lerp(Z0, 1, p) / s).toFixed(4)})`);
             set(tags[i], 'opacity', smooth(.5, .85, p).toFixed(3));
             const live = p > 0 && p < 1;
             if (secs[i]._live !== live) { secs[i]._live = live; secs[i].classList.toggle('is-live', live); }
@@ -94,7 +96,7 @@
             const t = lerp(cy - d / 2, 0, p); const b = lerp(h - cy - d / 2, 0, p); const l = lerp((w - d) / 2, 0, p);
             const tr = lerp(d / 2, w / 2, p); const br = lerp(d / 2, 0, p);
             set(el, 'clipPath', p >= .999 ? 'none' : `inset(${t.toFixed(1)}px ${l.toFixed(1)}px ${b.toFixed(1)}px ${l.toFixed(1)}px round ${tr.toFixed(1)}px ${tr.toFixed(1)}px ${br.toFixed(1)}px ${br.toFixed(1)}px)`);
-            set(imgs[i], 'transform', `scale(${lerp(1.16, 1, p).toFixed(3)})`);
+            set(imgs[i], 'transform', `scale(${lerp(Z0, 1, p).toFixed(3)})`);
           }
           const open = p > .8;
           if (secs[i]._open !== open) { secs[i]._open = open; secs[i].classList.toggle('is-open', open); }
@@ -180,8 +182,8 @@
     $$('.oc__go').forEach(b => b.addEventListener('click', () => {
       const r = $(`#celForm input[name="occasion"][value="${b.dataset.occ}"]`);
       if (r) r.checked = true;
-      $('#plan').scrollIntoView({ behavior: motion ? 'smooth' : 'auto' });
-      setTimeout(() => $('#c-name').focus({ preventScroll: true }), motion ? 700 : 0);
+      $('#plan').scrollIntoView({ behavior: OZ.behavior() });
+      setTimeout(() => $('#c-name').focus({ preventScroll: true }), OZ.behavior() === 'smooth' ? 700 : 0);
     }));
   }
 
@@ -199,23 +201,45 @@
     const show = (v) => { if (v !== shown) { shown = v; idx.textContent = v; } };
     if (motion) {
       jr.classList.add('is-pinned');
-      let over = 0; let tx = null;
+      const pin = $('.jr__pin', jr);
+      let over = 0; let tx = null; let on = 0;
       const G = {};
-      onMeasure(() => {
-        track.style.transform = 'none'; tx = null;
-        over = Math.max(0, track.scrollWidth - track.clientWidth);
-        // phones get a little more runway per stop so each arch has a beat in front · about 1.8 screens in all at 390 × 844
-        const h = Math.round(window.innerHeight + over * (mq.phone.matches ? 1.7 : 1.1) + window.innerHeight * .25);
+      stops[0].classList.add('on');
+      // round 6 · the runway is built from the stable height and the measured pin (100svh) · a toolbar move never resizes it
+      onMeasure(({ H }) => {
+        G.phone = mq.phone.matches;
+        G.pinH = pin.offsetHeight;
+        let h;
+        if (calm) {
+          // calm · the track never slides · each stop holds a beat of the runway and the arch in front cross fades
+          h = Math.round(G.pinH * 1.25 + (S - 1) * H * .6);
+        } else {
+          track.style.transform = 'none'; tx = null;
+          over = Math.max(0, track.scrollWidth - track.clientWidth);
+          // phones get a little more runway per stop so each arch has a beat in front · about 1.8 screens in all at 390 × 844
+          h = Math.round(G.pinH + over * (G.phone ? 1.7 : 1.1) + H * .25);
+        }
         if (jr._h !== h) { jr._h = h; jr.style.height = `${h}px`; }
-        G.top = docTop(jr); G.h = h; G.phone = mq.phone.matches;
+        G.top = docTop(jr); G.h = h; G.run = Math.max(h - G.pinH, 1);
         archs.forEach(a => { a._transform = null; a._opacity = null; });
         pics.forEach(im => { im._transform = null; });
       });
-      onFrame({
+      if (calm) onFrame({
         write: ({ y, H }) => {
           const top = G.top - y;
           if (top > H || top + G.h < 0) return;
-          const p = clamp(-top / Math.max(G.h - H, 1));
+          const p = clamp(-top / G.run);
+          set(draw, 'strokeDashoffset', (1 - p).toFixed(4));
+          const i = Math.min(S - 1, Math.floor(p * S * .999));
+          if (i !== on) { on = i; stops.forEach((s, j) => s.classList.toggle('on', j === i)); }
+          show(pad(i + 1));
+        }
+      });
+      else onFrame({
+        write: ({ y, H }) => {
+          const top = G.top - y;
+          if (top > H || top + G.h < 0) return;
+          const p = clamp(-top / G.run);
           // phones · hold each stop for the first third of its runway so the caption and the counter stay together
           let at = p * (S - 1);
           if (G.phone && S > 1) { const i = Math.min(Math.floor(at), S - 2); at = i + smooth(.35, 1, at - i); }
@@ -238,8 +262,8 @@
       track.addEventListener('keydown', e => {
         if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
         e.preventDefault();
-        const step = (jr.offsetHeight - window.innerHeight) / Math.max(S - 1, 1);
-        window.scrollBy({ top: e.key === 'ArrowRight' ? step : -step, behavior: 'smooth' });
+        const step = G.run / Math.max(S - 1, 1);
+        window.scrollBy({ top: e.key === 'ArrowRight' ? step : -step, behavior: OZ.behavior() });
       });
     } else {
       track.addEventListener('scroll', () => {
@@ -286,9 +310,9 @@
     peek.innerHTML = '<canvas class="cardpeek__c" width="216" height="270"></canvas><span class="cardpeek__k">Your card</span>';
     document.body.appendChild(peek);
     const pctx = $('canvas', peek).getContext('2d');
-    peek.addEventListener('click', () => cardFig.scrollIntoView({ behavior: motion ? 'smooth' : 'auto', block: 'center' }));
+    peek.addEventListener('click', () => cardFig.scrollIntoView({ behavior: OZ.behavior(), block: 'center' }));
     let touched = false; let peekOn = null;
-    const pop = () => { if (motion && peekOn && peek.animate) peek.animate([{ transform: 'scale(1.12)' }, { transform: 'none' }], { duration: 480, easing: 'cubic-bezier(.22,.61,.36,1)' }); };
+    const pop = () => { if (motion && !calm && peekOn && peek.animate) peek.animate([{ transform: 'scale(1.12)' }, { transform: 'none' }], { duration: 480, easing: 'cubic-bezier(.22,.61,.36,1)' }); };
 
     const logo = new Image(); logo.onload = () => draw(); logo.src = 'assets/full-whitegold.svg';
     const fit = (text, weight, size, max) => { let s = size; ctx.font = `${weight} ${s}px Montserrat`; while (ctx.measureText(text).width > max && s > 28) { s -= 2; ctx.font = `${weight} ${s}px Montserrat`; } return s; };

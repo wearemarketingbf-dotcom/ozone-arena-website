@@ -26,10 +26,11 @@
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="css/pages.css">
 <script>
-  // motion is an enhancement · without js or with reduced motion every section renders static and complete
+  // motion is an enhancement · without js every section renders static and complete
+  // round 6 · reduced motion gets calm motion · the scroll linked story stays · parallax · big moves · loops and autoplay go
   (function () {
-    var d = document.documentElement; d.classList.add('js');
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('motion');
+    var d = document.documentElement; d.classList.add('js', 'motion');
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('calm');
   })();
 </script>
 </head>
@@ -84,10 +85,10 @@
     <figure class="core-art" data-reveal>
       <svg viewBox="0 0 520 520" role="img" aria-labelledby="core-t" focusable="false">
         <title id="core-t">Rings spreading out from one golden core with family friends work and wellness on the rings</title>
-        <circle class="core-art__r" cx="260" cy="260" r="236" style="--i:4"/>
-        <circle class="core-art__r" cx="260" cy="260" r="186" style="--i:3"/>
-        <circle class="core-art__r" cx="260" cy="260" r="136" style="--i:2"/>
-        <circle class="core-art__r" cx="260" cy="260" r="86" style="--i:1"/>
+        <circle class="core-art__r" pathLength="1" cx="260" cy="260" r="236" style="--i:4"/>
+        <circle class="core-art__r" pathLength="1" cx="260" cy="260" r="186" style="--i:3"/>
+        <circle class="core-art__r" pathLength="1" cx="260" cy="260" r="136" style="--i:2"/>
+        <circle class="core-art__r" pathLength="1" cx="260" cy="260" r="86" style="--i:1"/>
         <circle class="core-art__core" cx="260" cy="260" r="22"/>
         <text x="260" y="24">Wellness</text><text x="260" y="74">Work</text><text x="260" y="124">Friends</text><text x="260" y="174">Family</text>
       </svg>

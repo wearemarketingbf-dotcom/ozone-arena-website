@@ -4,7 +4,7 @@
 (() => {
   'use strict';
   const OZ = window.OZ;
-  const { ZONES, $, $$, motion, clamp, lerp, easeOut, smooth, pad, icon, mq, onFrame, onMeasure, keepAlive, kick, docTop, set } = OZ;
+  const { ZONES, $, $$, motion, calm, clamp, lerp, easeOut, smooth, pad, icon, mq, onFrame, onMeasure, keepAlive, kick, docTop, set } = OZ;
 
   // optional muted loops · cropped to the same 3:4 frame as the stills · the still is the poster
   // delete a line here (or the file) and that zone simply shows its still
@@ -24,9 +24,10 @@
   const N = ZONES.length;
   const STEP = 360 / N;
   // M1 · posters and video sources wait in data attributes until the orbit or deck comes near
+  // round 6 · calm motion never autoplays · the still is shown instead of the clip
   const media = (z, eager) => {
     const v = VIDEOS[z.id];
-    if (v && motion) return `<video muted loop playsinline preload="none" data-poster="${z.img}" data-src="${v.src}" aria-label="${z.alt}"></video>`;
+    if (v && motion && !calm) return `<video muted loop playsinline webkit-playsinline preload="none" data-poster="${z.img}" data-src="${v.src}" aria-label="${z.alt}"></video>`;
     return `<img src="${z.img}" width="720" height="960" alt="${z.alt}" loading="lazy" decoding="async"${eager ? ' data-prefetch' : ''}>`;
   };
   list.setAttribute('role', 'tablist');
@@ -90,7 +91,7 @@
   let cardStep = 1;
   let deckK = 0; let deckI = 0;
   const di = $('.js-di');
-  const goCard = (i) => track.scrollTo({ left: clamp(i, 0, N - 1) * cardStep, behavior: motion ? 'smooth' : 'auto' });
+  const goCard = (i) => track.scrollTo({ left: clamp(i, 0, N - 1) * cardStep, behavior: OZ.behavior() });
   $('.js-prev').addEventListener('click', () => goCard(deckI - 1));
   $('.js-next').addEventListener('click', () => goCard(deckI + 1));
   track.addEventListener('scroll', kick, { passive: true });
@@ -113,16 +114,36 @@
   // optional zone videos · play only when visible
   let orbitVisible = false;
   let deckVisible = false;
+  // round 6 · iOS Low Power Mode · data saver or a blocked autoplay rejects play() · the clips give way to their stills
+  // a blocked play swaps every clip · a broken file swaps only its own · a pause before play resolved is not a block
+  const still = (v) => {
+    const im = new Image(); im.width = 720; im.height = 960; im.decoding = 'async';
+    im.alt = v.getAttribute('aria-label') || ''; im.src = v.poster || v.dataset.poster || '';
+    v.pause(); v.removeAttribute('src'); v.load(); v.replaceWith(im);
+  };
+  let blocked = false;
+  const fallback = (err, v) => {
+    if (!err || err.name === 'AbortError') return;
+    if (err.name === 'NotAllowedError') { if (blocked) return; blocked = true; $$('.zl video, .card video').forEach(still); }
+    else if (v && v.isConnected) still(v);
+  };
+  const play = (v) => {
+    v.muted = true; v.autoplay = true;
+    const p = v.play(); if (p && p.catch) p.catch(err => fallback(err, v));
+  };
+  const stop = (v) => { v.autoplay = false; if (!v.paused) v.pause(); };
   function syncVideos() {
-    if (!motion) return;
-    zls.forEach((l, i) => { const v = $('video', l); if (!v || !v.dataset.ready) return; (orbitVisible && i === cur) ? v.play().catch(() => {}) : v.pause(); });
-    cards.forEach((c, i) => { const v = $('video', c); if (!v || !v.dataset.ready) return; (deckVisible && i === deckI) ? v.play().catch(() => {}) : v.pause(); });
+    if (!motion || calm || blocked) return;
+    zls.forEach((l, i) => { const v = $('video', l); if (!v || !v.dataset.ready) return; (orbitVisible && i === cur) ? play(v) : stop(v); });
+    cards.forEach((c, i) => { const v = $('video', c); if (!v || !v.dataset.ready) return; (deckVisible && i === deckI) ? play(v) : stop(v); });
   }
   // M1 + M2 · when the orbit or deck is about 600 px away · posters and sources attach and every zone still is fetched once
   const arm = (scope) => {
     $$('video[data-poster]', scope).forEach(v => {
-      // a direct src with preload none fetches nothing until the clip actually plays
+      // a direct src with preload none fetches nothing until the clip actually plays · muted loop playsinline · autoplay only while in front
+      v.muted = true; v.defaultMuted = true;
       v.poster = v.dataset.poster; v.removeAttribute('data-poster');
+      v.addEventListener('error', () => fallback({ name: 'MediaError' }, v), { once: true });
       v.src = v.dataset.src; v.removeAttribute('data-src'); v.dataset.ready = '1';
     });
     $$('img[data-prefetch]', scope).forEach(im => { im.loading = 'eager'; im.removeAttribute('data-prefetch'); });
@@ -145,7 +166,7 @@
   const CH = chs.length;
   const G = {};   // cached geometry · document coordinates
   steps.forEach((b, i) => b.addEventListener('click', () => {
-    window.scrollTo({ top: G.storyTop + (G.storyH - window.innerHeight) * ((i + .5) / CH), behavior: motion ? 'smooth' : 'auto' });
+    window.scrollTo({ top: G.storyTop + G.storyRun * ((i + .5) / CH), behavior: OZ.behavior() });
   }));
 
   /* ================= closing orbit dots ================= */
@@ -178,7 +199,8 @@
     // phones · the render is only the top 56 percent of the hero so the gold segment makes its lap while the render is still on screen
     G.heroRun = G.phone ? Math.max($('.hero__media').offsetHeight, 1) : G.heroH;
     G.rippleTop = docTop(ripple);
-    G.storyTop = docTop(story); G.storyH = story.offsetHeight;
+    // round 6 · the pin is measured not assumed · its run is the story height less the pinned stage (100svh)
+    G.storyTop = docTop(story); G.storyH = story.offsetHeight; G.storyRun = Math.max(G.storyH - $('.story__pin', story).offsetHeight, 1);
     G.deckTop = docTop(deck); G.deckH = deck.offsetHeight;
     cardStep = cards.length > 1 ? (cards[1].offsetLeft - cards[0].offsetLeft) || 1 : track.clientWidth || 1;
     G.tracked = tracked.map(s => docTop(s));
@@ -186,6 +208,8 @@
     G.joinGridTop = docTop($('.join__grid'));
     G.runTop = closeRun ? docTop(closeRun) : 0; G.runH = closeRun ? closeRun.offsetHeight : 0;
     G.closeS = closeEl.offsetHeight;
+    // the sticky top as css resolves it · centred in the small viewport so a toolbar never moves it
+    G.closeT = parseFloat(getComputedStyle(closeEl).top) || 0;
   });
 
   // shared reads · the deck position is the only live read (its own horizontal scroll)
@@ -210,8 +234,8 @@
       if (G.phone) {
         const i = clamp(Math.round(deckK), 0, N - 1);
         if (i !== deckI) { deckI = i; di.textContent = pad(i + 1); syncVideos(); }
-        // the halo dial · reduced motion turns it in whole steps without gliding
-        const k = motion ? deckK : deckI;
+        // the halo dial · calm motion and the static page turn it in whole steps without gliding
+        const k = motion && !calm ? deckK : deckI;
         const near = G.deckTop - y < H * 1.4 && G.deckTop + G.deckH - y > -H * .4;
         if (!near) return;
         const e = motion ? clamp((y + H * .94 - G.deckTop) / (H * .52)) : 1;
@@ -220,7 +244,8 @@
         set(dialArc, 'strokeDashoffset', (1 - ((k + 1) / N) * smooth(.55, 1, e)).toFixed(4));
         dialZ.forEach((z, i) => {
           const ei = motion ? smooth(i * .045, i * .045 + .55, e) : 1;
-          const th = (i - k) * STEP - (1 - ei) * 75;
+          // calm · the circles fade in where they rest · motion · they glide 75 degrees into place
+          const th = (i - k) * STEP - (calm ? 0 : (1 - ei) * 75);
           const ab = Math.abs(th);
           const s = .84 + .38 * Math.max(0, 1 - ab / STEP);
           const o = (1 - smooth(STEP * 1.05, STEP * 1.55, ab)) * ei;
@@ -259,7 +284,7 @@
   const heroBox = $('.hero__box');
   const arcs = $$('.orbit-arc');
   let introT0 = 0;
-  const startHero = () => { requestAnimationFrame(() => { hero.classList.add('is-in'); introT0 = performance.now(); keepAlive(3100); }); };
+  const startHero = () => { requestAnimationFrame(() => { hero.classList.add('is-in'); introT0 = performance.now(); if (!calm) keepAlive(3100); }); };
   const heroImg = $('.hero__img');
   if (heroImg.complete) startHero(); else { heroImg.addEventListener('load', startHero, { once: true }); setTimeout(() => { if (!hero.classList.contains('is-in')) startHero(); }, 1400); }
 
@@ -270,8 +295,26 @@
   let closed = false;
   let litN = -1;
 
+  // calm · the circles never travel or grow · each person rests in their corner and lights up
+  // while their photo fades in at the centre · the copies are decorative and reuse the same files
+  const centre = [];
+  if (calm) {
+    const table = pcs[CH - 1];
+    pcs.slice(0, CH - 1).forEach(pc => {
+      const f = pc.cloneNode(true);
+      f.className = 'pc pc--c'; f.removeAttribute('data-i'); f.setAttribute('aria-hidden', 'true'); $('img', f).alt = '';
+      table.parentNode.insertBefore(f, table); centre.push(f);
+    });
+  }
   function layoutStory(c) {
-    pcs.forEach((el, i) => {
+    if (calm) {
+      const end = c === CH - 1;
+      pcs.forEach((el, i) => {
+        if (i === CH - 1) el.style.opacity = end ? 1 : 0;
+        else { el.style.opacity = end || i === c ? 1 : .5; el.classList.toggle('is-focus', i === c); }
+      });
+      centre.forEach((el, i) => { el.style.opacity = i === c ? 1 : 0; });
+    } else pcs.forEach((el, i) => {
       let t; let o = 1;
       if (i === CH - 1) { t = c === CH - 1 ? 'none' : 'scale(.6)'; o = c === CH - 1 ? 1 : 0; }
       else if (i === c) t = 'none';
@@ -285,38 +328,47 @@
   }
 
   onFrame({
-    write: ({ y, H, docH, now }) => {
+    write: ({ y, H, vh, docH, now }) => {
       // hero · the bright arc orbits the building as you scroll · slow depth on the render
+      // calm · the arc stays where it rests and your scroll draws it on round the orbit · the render holds still
       if (y < G.heroH * 1.2) {
-        const hp = clamp(y / Math.max(G.heroH, 1));
-        const intro = introT0 ? easeOut(clamp((now - introT0) / 3000)) : 0;
-        const off = (-(150 + intro * 260 + clamp(y / G.heroRun) * 620)).toFixed(1);
-        arcs.forEach(a => set(a, 'strokeDashoffset', off));
-        set(heroBox, 'transform', `translate3d(0, ${(hp * 9).toFixed(2)}%, 0)`);
+        if (calm) {
+          const L = ((G.phone ? 420 : 360) + clamp(y / G.heroRun) * (G.phone ? 580 : 640)).toFixed(1);
+          arcs.forEach(a => set(a, 'strokeDasharray', `${L} 1000`));
+        } else {
+          const hp = clamp(y / Math.max(G.heroH, 1));
+          const intro = introT0 ? easeOut(clamp((now - introT0) / 3000)) : 0;
+          const off = (-(150 + intro * 260 + clamp(y / G.heroRun) * 620)).toFixed(1);
+          arcs.forEach(a => set(a, 'strokeDashoffset', off));
+          set(heroBox, 'transform', `translate3d(0, ${(hp * 9).toFixed(2)}%, 0)`);
+        }
       }
 
       // many circles · four circles drift in from across the city and meet at one core
+      // calm · they merge mostly by opacity and move at most 24 svg units (24 px on the widest screen)
       const mTop = G.rippleTop - y;
       if (mTop < H * 1.1 && mTop > -H) {
         const mp = clamp((H * .95 - mTop) / (H * .55));
         const me = easeOut(mp);
-        const spread = lerp(188, 66, me);
+        const spread = calm ? lerp(90, 66, me) : lerp(188, 66, me);
         rcs.forEach(g => {
           // a css transform on the svg group · no svg relayout per frame
           set(g, 'transform', `translate(${(280 + +g.dataset.x * spread).toFixed(1)}px, ${(280 + +g.dataset.y * spread).toFixed(1)}px)`);
-          set(g, 'opacity', (.35 + .65 * me).toFixed(3));
+          set(g, 'opacity', (calm ? .14 + .86 * me : .35 + .65 * me).toFixed(3));
         });
-        set(rCore, 'transform', `scale(${smooth(.72, 1, mp).toFixed(3)})`);
+        const cs = smooth(.72, 1, mp);
+        if (calm) { set(rCore, 'opacity', cs.toFixed(3)); set(rCore, 'transform', `scale(${(.96 + .04 * cs).toFixed(3)})`); }
+        else set(rCore, 'transform', `scale(${cs.toFixed(3)})`);
       }
 
       // family story · chapter from pinned progress · the orbit arc fills as the family gathers
-      const sp = clamp((y - G.storyTop) / Math.max(G.storyH - H, 1));
+      const sp = clamp((y - G.storyTop) / G.storyRun);
       set(storyArc, 'strokeDashoffset', (1 - sp).toFixed(4));
       const c = Math.min(CH - 1, Math.floor(sp * CH));
       if (c !== chapter) { chapter = c; layoutStory(c); }
 
-      // building · the render drifts slowly inside each arch
-      pimgs.forEach((im, i) => {
+      // building · the render drifts slowly inside each arch · calm drops this parallax
+      if (!calm) pimgs.forEach((im, i) => {
         const g = G.pillars[i]; const top = g.top - y;
         if (top + g.h < 0 || top > H) return;
         set(im, 'translate', `0 ${((.5 - (top + g.h / 2) / H) * 6).toFixed(2)}%`);
@@ -327,14 +379,14 @@
       if (!closed) {
         let cp;
         if (G.stack && G.runH > G.closeS) {
-          const T = (H - G.closeS) / 2 + (G.phone ? 64 : 76) / 2;   // the sticky top in css · header plus centred ring
+          const T = G.closeT;   // the sticky top as css resolves it · header plus a ring centred in 100svh
           const start = G.runTop - T - H * .4;
           const end = G.runTop - T + (G.runH - G.closeS) * .62;
           cp = clamp((y - start) / Math.max(end - start, 1));
         } else {
           cp = clamp((H * .95 - (G.joinGridTop - y)) / (H * .45));
         }
-        if (y + H >= docH - 4) cp = 1;
+        if (y + vh >= docH - 4) cp = 1;
         set(closeArc, 'strokeDashoffset', (1 - cp).toFixed(4));
         const n = dots.filter((d, i) => cp >= i / N + .015).length;
         if (n !== litN) { litN = n; dots.forEach((d, i) => d.classList.toggle('lit', i < n)); }

@@ -31,7 +31,7 @@
 .zx { background: var(--navy); padding-bottom: clamp(48px, 6vw, 96px); }
 .zx__grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: clamp(40px, 5vw, 88px); }
 .zx__grid > * { min-width: 0; }
-.zx__index { position: sticky; top: calc(var(--hdr) + max(24px, (100svh - var(--hdr) - 300px) / 2)); align-self: start; z-index: 5; }
+.zx__index { position: sticky; top: calc(var(--hdr) + max(24px, (var(--fit) - var(--hdr) - 300px) / 2)); align-self: start; z-index: 5; }
 .zx__orbit { position: relative; width: 300px; aspect-ratio: 1; container-type: inline-size; }
 .zx__ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
 .zx__track { fill: none; stroke: var(--linen); stroke-opacity: .16; stroke-width: .5; }
@@ -89,7 +89,7 @@
   .zs__media { margin-inline: calc(var(--pad) * -1); padding-bottom: 0; }
   .zs__detail, .zs--flip .zs__detail { width: 34%; right: var(--pad); left: auto; bottom: -12%; }
   .zs__text { padding-top: 6%; }
-  .zs__arch { max-height: 78svh; }
+  .zs__arch { max-height: calc(var(--fit) * .78); }
 }
 @media (min-width: 760px) and (max-width: 1099px) { .zs__media { margin-inline: 0; } .zs__arch { max-height: none; } }
 
@@ -174,7 +174,7 @@
 .jr__track { display: flex; gap: clamp(20px, 3vw, 48px); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: max(var(--pad), (100vw - 1360px) / 2 + var(--pad)); padding: 4px max(var(--pad), (100vw - 1360px) / 2 + var(--pad)) 12px; scrollbar-width: none; }
 .jr__track::-webkit-scrollbar { display: none; }
 .jr__track:focus-visible { outline-offset: -2px; border-radius: 0; }
-.jr__stop { flex: 0 0 min(360px, 72vw, 34svh); scroll-snap-align: start; }
+.jr__stop { flex: 0 0 min(360px, 72vw, calc(var(--fit) * .34)); scroll-snap-align: start; }
 .jr__arch { aspect-ratio: 3 / 4; }
 .jr__arch img { width: 100%; height: 100%; object-fit: cover; }
 .jr__arch .vis-tag { top: 10%; right: auto; left: 50%; transform: translateX(-50%); }
@@ -186,7 +186,7 @@
 .jr__draw { stroke: var(--gold); stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 0; vector-effect: non-scaling-stroke; }
 .jr__note { font-size: 13px; color: var(--ink-d); margin-top: 22px; }
 /* pinned only with motion · the vertical scroll moves the track sideways */
-.motion .jr.is-pinned .jr__pin { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: calc(var(--hdr) + 16px) 0 20px; overflow: hidden; }
+.motion .jr.is-pinned .jr__pin { position: sticky; top: 0; height: 100vh; height: var(--fit); display: flex; flex-direction: column; justify-content: center; padding: calc(var(--hdr) + 16px) 0 20px; overflow: hidden; }
 .motion .jr.is-pinned .jr__head { margin-bottom: clamp(20px, 3vh, 40px); }
 .motion .jr.is-pinned .jr__head .h2 { font-size: clamp(32px, min(4.2vw, 5.4vh), 60px); }
 .motion .jr.is-pinned .jr__track { overflow: visible; scroll-snap-type: none; will-change: transform; }
@@ -301,7 +301,7 @@
 /* =====================================================================
    404 · an orbit that has not closed · no core yet
    ===================================================================== */
-.nf { background: var(--navy); min-height: 100svh; display: flex; align-items: center; padding: calc(var(--hdr) + 48px) 0 72px; }
+.nf { background: var(--navy); min-height: var(--fit); display: flex; align-items: center; padding: calc(var(--hdr) + 48px) 0 72px; }
 .nf__grid { display: grid; grid-template-columns: minmax(220px, .8fr) 1.2fr; gap: 48px clamp(40px, 6vw, 110px); align-items: center; }
 .nf__orbit svg { width: 100%; max-width: 400px; overflow: visible; }
 .nf__track { fill: none; stroke: var(--linen); stroke-opacity: .14; stroke-width: 1; }
@@ -372,7 +372,7 @@
 }
 
 /* story · W5 fix · the pinned journey fits every viewport */
-.motion .jr.is-pinned .jr__stop { flex-basis: min(360px, 72vw, calc((100svh - 520px) * .75)); }
+.motion .jr.is-pinned .jr__stop { flex-basis: min(360px, 72vw, calc((var(--fit) - 520px) * .75)); }
 /* story on phones · a pinned journey sized for 360 × 640 · the arch in front stands tall and the next ones wait */
 @media (max-width: 759px) {
   .motion .jr.is-pinned .jr__pin { padding: calc(var(--hdr) + 8px) 0 12px; }
@@ -381,7 +381,7 @@
   .motion .jr.is-pinned .jr__hint { order: 1; }
   .motion .jr.is-pinned .jr__head .h2 { order: 2; flex-basis: 100%; font-size: 28px; }
   .motion .jr.is-pinned .jr__track { gap: 16px; }
-  .motion .jr.is-pinned .jr__stop { flex-basis: min(72vw, calc((100svh - 340px) * .75)); }
+  .motion .jr.is-pinned .jr__stop { flex-basis: min(72vw, calc((var(--fit) - 340px) * .75)); }
   .motion .jr.is-pinned .jr__arch { transform-origin: 50% 100%; will-change: transform, opacity; }
   .motion .jr.is-pinned .jr__arch img { transform: scale(1.18); }
   .motion .jr.is-pinned .jr__n { margin-top: 10px; }
@@ -407,3 +407,50 @@
 .nf__orbit { position: relative; }
 .nf__still { position: relative; }
 .nf__spin { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; }
+
+/* =====================================================================
+   ROUND 6 · calm motion on inner pages · html.motion.calm under prefers-reduced-motion: reduce
+   rings draw instead of growing · photos settle by 4 percent at most · the journey steps in place · nothing loops
+   ===================================================================== */
+.motion.calm .phero__rings { scale: .97; }
+.motion.calm .phero.is-in .phero__rings { scale: 1; }
+.motion.calm .phero:has(.is-in) .phero__rings { scale: 1; }
+/* story · the rings draw out from the core one after another */
+.motion.calm .core-art__r { scale: 1; opacity: 1; rotate: -90deg; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.motion.calm .core-art.is-in .core-art__r { stroke-dashoffset: 0; transition: stroke-dashoffset 1.4s var(--ease) calc(var(--i) * .14s); }
+/* visit · the map rings draw outward from the pin */
+.motion.calm .amap__rings circle { scale: 1; opacity: 1; rotate: -90deg; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.motion.calm .amap.is-in .amap__rings circle { stroke-dashoffset: 0; transition: stroke-dashoffset 1.5s var(--ease) calc(var(--i) * .12s); }
+/* zones · the detail circle appears with a 4 percent settle · the index circles change without a tween */
+.motion.calm .zs__detail { scale: .96; }
+.motion.calm .zs.is-open .zs__detail { scale: 1; }
+.motion.calm .zx__list a { transition: box-shadow .6s var(--ease), background-color .4s var(--ease); }
+/* celebrations · each arch lights as the garland reaches it with a 3 percent settle */
+@media (max-width: 899px) {
+  .motion.calm .garland.is-snake .oc__arch img { transform: scale(1.03); }
+  .motion.calm .garland.is-snake .oc.lit .oc__arch img { transform: none; }
+}
+/* story journey · pinned · the track never slides sideways · each stop lights in turn as the gold line draws
+   desktop shows the four stops in one row · tablets and phones cross fade one arch in place */
+.motion.calm .jr.is-pinned .jr__track { transform: none; will-change: auto; }
+.motion.calm .jr.is-pinned .jr__stop { opacity: .36; transition: opacity .6s var(--ease); }
+.motion.calm .jr.is-pinned .jr__stop.on { opacity: 1; }
+.motion.calm .jr.is-pinned .jr__arch img { transform: none; }
+@media (min-width: 1100px) {
+  .motion.calm .jr.is-pinned .jr__stop { flex: 1 1 0; min-width: 0; max-width: min(360px, calc((var(--fit) - 520px) * .75)); }
+}
+@media (max-width: 1099px) {
+  .motion.calm .jr.is-pinned .jr__track { display: grid; justify-items: start; }
+  .motion.calm .jr.is-pinned .jr__stop { grid-area: 1 / 1; width: min(360px, 72vw, calc((var(--fit) - 520px) * .75)); opacity: 0; visibility: hidden; transition: opacity .6s var(--ease), visibility 0s .6s; }
+  .motion.calm .jr.is-pinned .jr__stop.on { opacity: 1; visibility: visible; transition-delay: 0s; }
+}
+@media (max-width: 759px) {
+  .motion.calm .jr.is-pinned .jr__stop { width: min(72vw, calc((var(--fit) - 340px) * .75)); }
+}
+/* first circle · the mini card rises 12 px · no pop */
+@media (max-width: 899px) {
+  .motion.calm .cardpeek { transform: translateY(12px) scale(.97); }
+  .motion.calm .cardpeek.on { transform: none; }
+}
+/* 404 · the unclosed orbit rests · no loop */
+.motion.calm .nf__spin { animation: none; }

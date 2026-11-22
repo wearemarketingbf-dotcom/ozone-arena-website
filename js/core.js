@@ -46,12 +46,15 @@
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const root = document.documentElement;
   const motion = root.classList.contains('motion');
+  // round 6 · calm motion under prefers-reduced-motion · scroll linked drawing · fades and pinned steps stay
+  // parallax · large moves and scaling · loops · autoplay video · view transitions and smooth scroll jumps go
+  const calm = motion && root.classList.contains('calm');
+  const behavior = () => (motion && !calm ? 'smooth' : 'auto');
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const easeOut = t => 1 - Math.pow(1 - t, 3);
   const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
   const pad = n => String(n).padStart(2, '0');
-  const vh = () => window.innerHeight;
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const icon = (id) => { const d = ICONS[id]; return `<svg class="ic" viewBox="0 0 48 48" aria-hidden="true" focusable="false">${d.p}<circle class="ic__core" cx="${d.c[0]}" cy="${d.c[1]}" r="${d.c[2]}"></circle></svg>`; };
   const zoneById = id => ZONES.find(z => z.id === id);
@@ -72,12 +75,14 @@
      read(s) then write(s) · all reads of a frame happen before any write · writes are transform · opacity or a small svg stroke */
   const mq = { phone: matchMedia('(max-width: 759px)'), stack: matchMedia('(max-width: 899px)'), tab: matchMedia('(max-width: 1099px)') };
   const tasks = []; const measures = [];
-  const S = { y: 0, H: 0, W: 0, docH: 0, now: 0 };
+  // S.H is a stable viewport height for every pin · runway and threshold · S.vh is the live height
+  const S = { y: 0, H: 0, vh: 0, W: 0, docH: 0, now: 0 };
   let queued = false; let dirty = true; let alive = 0;
   const frame = (now) => {
     queued = false;
-    S.now = now; S.H = window.innerHeight; S.W = window.innerWidth;
+    S.now = now; S.H = stable.h; S.vh = window.innerHeight; S.W = window.innerWidth;
     if (dirty) { dirty = false; S.docH = root.scrollHeight; measures.forEach(f => f(S)); S.docH = root.scrollHeight; }
+    // read the position inside the frame · works the same for touch momentum · wheel · keys and scrollbars
     S.y = window.scrollY;
     for (const t of tasks) if (t.read) t.read(S);
     for (const t of tasks) if (t.write) t.write(S);
@@ -89,8 +94,25 @@
   const onMeasure = (f) => { measures.push(f); remeasure(); };
   const keepAlive = (ms) => { alive = Math.max(alive, performance.now() + ms); kick(); };
   const docTop = el => el.getBoundingClientRect().top + window.scrollY;
+
+  /* ---------- round 6 · a stable viewport height for iOS Safari and Android Chrome ----------
+     the toolbar shows and hides while you scroll and changes innerHeight by about 50 to 115 px
+     pins · runways and thresholds keep the height cached at load · it updates on a width or orientation change
+     and on a real window resize · never on a toolbar move and never while the keyboard is up for a field
+     css reads it as --vh1 (one hundredth of the stable height) for every runway · 100svh stays for things that must fit on screen */
+  const touchy = matchMedia('(hover: none), (pointer: coarse), (max-width: 1099px)');
+  const stable = { h: window.innerHeight, w: window.innerWidth };
+  const typing = () => { const a = document.activeElement; return !!a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable); };
+  const setVh = () => root.style.setProperty('--vh1', (stable.h / 100).toFixed(2) + 'px');
+  const restable = () => { stable.h = window.innerHeight; stable.w = window.innerWidth; setVh(); remeasure(); };
+  setVh();
   window.addEventListener('scroll', kick, { passive: true });
-  window.addEventListener('resize', remeasure, { passive: true });
+  window.addEventListener('resize', () => {
+    const w = window.innerWidth; const h = window.innerHeight;
+    if (Math.abs(w - stable.w) < 1 && touchy.matches && (Math.abs(h - stable.h) <= 180 || typing())) { kick(); return; }
+    restable();
+  }, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(restable, 350));
   window.addEventListener('load', remeasure);
   if (document.fonts) document.fonts.ready.then(remeasure);
   if ('ResizeObserver' in window) new ResizeObserver(remeasure).observe(document.body);
@@ -153,10 +175,10 @@
   let solid = null; let docked = null;
   onMeasure(() => { stops.forEach(s => { s.top = docTop(s.el); s.h = s.el.offsetHeight; }); });
   onFrame({
-    write: ({ y, H, docH }) => {
+    write: ({ y, H, vh, docH }) => {
       const sol = menuBtn.getAttribute('aria-expanded') === 'true' || y > 24;
       if (sol !== solid) { solid = sol; hdr.classList.toggle('is-solid', sol); }
-      if (prog) set(prog, 'strokeDashoffset', (1 - clamp(y / Math.max(docH - H, 1))).toFixed(4));
+      if (prog) set(prog, 'strokeDashoffset', (1 - clamp(y / Math.max(docH - vh, 1))).toFixed(4));
       if (!dock) return;
       const near = stops.some(s => s.pin ? (s.top - y < H * .5 && s.top + s.h - y > H * .5) : (s.top - y < H * .92 && s.top + s.h - y > 0));
       const on = y > H * .6 && !near;
@@ -276,5 +298,6 @@
     $$('.reveal, .pillar, .card, .orbit, [data-reveal]').forEach(el => io.observe(el));
   }
 
-  window.OZ = { SITE_URL, CONFIG, ZONES, FAMILY, OCCASIONS, ICONS, $, $$, motion, clamp, lerp, easeOut, smooth, pad, vh, esc, icon, zoneById, waDigits, waUrl, pageUrl, io, mq, onFrame, onMeasure, keepAlive, kick, remeasure, docTop, set };
+  const vh = () => stable.h;
+  window.OZ = { SITE_URL, CONFIG, ZONES, FAMILY, OCCASIONS, ICONS, $, $$, motion, calm, behavior, clamp, lerp, easeOut, smooth, pad, vh, esc, icon, zoneById, waDigits, waUrl, pageUrl, io, mq, onFrame, onMeasure, keepAlive, kick, remeasure, docTop, set };
 })();

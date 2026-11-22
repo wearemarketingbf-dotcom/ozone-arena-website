@@ -31,10 +31,11 @@
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="css/pages.css">
 <script>
-  // motion is an enhancement · without js or with reduced motion every section renders static and complete
+  // motion is an enhancement · without js every section renders static and complete
+  // round 6 · reduced motion gets calm motion · the scroll linked story stays · parallax · big moves · loops and autoplay go
   (function () {
-    var d = document.documentElement; d.classList.add('js');
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('motion');
+    var d = document.documentElement; d.classList.add('js', 'motion');
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('calm');
   })();
 </script>
 </head>

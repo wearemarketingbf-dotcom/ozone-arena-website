@@ -26,10 +26,11 @@
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="css/pages.css">
 <script>
-  // motion is an enhancement · without js or with reduced motion every section renders static and complete
+  // motion is an enhancement · without js every section renders static and complete
+  // round 6 · reduced motion gets calm motion · the scroll linked story stays · parallax · big moves · loops and autoplay go
   (function () {
-    var d = document.documentElement; d.classList.add('js');
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('motion');
+    var d = document.documentElement; d.classList.add('js', 'motion');
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('calm');
   })();
 </script>
 </head>
@@ -83,8 +84,8 @@
     </div>
     <div class="amap" role="img" aria-label="Map placeholder · the pin waits at the centre of the rings until the address is confirmed" data-reveal>
       <svg class="amap__rings" viewBox="0 0 400 480" aria-hidden="true" focusable="false">
-        <circle cx="200" cy="250" r="40" style="--i:0"/><circle cx="200" cy="250" r="80" style="--i:1"/><circle cx="200" cy="250" r="120" style="--i:2"/>
-        <circle class="amap__gold" cx="200" cy="250" r="160" style="--i:3"/><circle cx="200" cy="250" r="200" style="--i:4"/><circle cx="200" cy="250" r="240" style="--i:5"/><circle cx="200" cy="250" r="280" style="--i:6"/>
+        <circle pathLength="1" cx="200" cy="250" r="40" style="--i:0"/><circle pathLength="1" cx="200" cy="250" r="80" style="--i:1"/><circle pathLength="1" cx="200" cy="250" r="120" style="--i:2"/>
+        <circle pathLength="1" class="amap__gold" cx="200" cy="250" r="160" style="--i:3"/><circle pathLength="1" cx="200" cy="250" r="200" style="--i:4"/><circle pathLength="1" cx="200" cy="250" r="240" style="--i:5"/><circle pathLength="1" cx="200" cy="250" r="280" style="--i:6"/>
       </svg>
       <span class="amap__pin"><svg class="ic" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M24 41.5s-12-10.5-12-20a12 12 0 0 1 24 0c0 9.5-12 20-12 20z"></path><circle class="ic__core" cx="24" cy="21.5" r="3"></circle></svg></span>
       <div class="amap__foot"><span class="amap__k">Map</span><span><span class="ph">[Address]</span> · Karachi</span><span class="ph">[Map link]</span></div>
